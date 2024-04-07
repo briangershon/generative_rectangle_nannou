@@ -44,14 +44,10 @@ fn view(app: &App, _model: &Model, frame: Frame){
     app.main_window().capture_frame(file_path);
 }
 
+/// Generate a path to save the given frame to.
 fn captured_frame_path(app: &App, frame: &Frame) -> std::path::PathBuf {
-    // Create a path that we want to save this frame to.
     app.project_path()
         .expect("failed to locate `project_path`")
-        // Capture all frames to a directory called `/<path_to_nannou>/nannou/simple_capture`.
-        // .join(app.exe_name().unwrap())
-        // Name each file after the number of the frame.
-        .join(format!("screenshot/{:03}", frame.nth()))
-        // The extension will be PNG. We also support tiff, bmp, gif, jpeg, webp and some others.
+        .join(format!("capture/{:03}", frame.nth()))
         .with_extension("png")
 }

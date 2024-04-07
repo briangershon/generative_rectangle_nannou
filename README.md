@@ -2,7 +2,7 @@
 
 This is a simple project to get started with Nannou.
 
-Takes a screenshot of each frame and saves to the `screenshot` directory.
+Captures each frame and saves to the `capture` directory.
 
 Set to render just one frame.
 
