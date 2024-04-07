@@ -1,5 +1,9 @@
 use nannou::{image, rand::random_range};
 
+// actual color not important since we're just checking for overlap
+const RECT_STROKE_COLOR: image::Rgba<u8> = image::Rgba([0, 255, 0, 255]);
+const RECT_FILL_COLOR: image::Rgba<u8> = image::Rgba([255, 0, 0, 255]);
+
 pub struct RectanglePacker {
     pub boundary: nannou::geom::Rect,
     rectangles: Vec<Rectangle>,
@@ -43,7 +47,7 @@ impl RectanglePacker {
             height: random_range(4.0, 60.0),
         };
 
-        if new_rect.open_rect_on_buffer(self.boundary, &self.image_buffer) {
+        if new_rect.open_rect_on_buffer(self.boundary, &self.image_buffer, 4) {
             new_rect.draw_rect_on_buffer(self.boundary, &mut self.image_buffer);
             self.rectangles.push(new_rect);
         }
@@ -73,7 +77,11 @@ impl Rectangle {
 
         for x in left..right + 1 {
             for y in top..bottom + 1 {
-                image_buffer.put_pixel(x, y, image::Rgba([255, 0, 0, 255]));
+                let mut rect_color = RECT_FILL_COLOR;
+                if (x == left || x == right + 1) || (y == top || y == bottom + 1) {
+                    rect_color = RECT_STROKE_COLOR;
+                }
+                image_buffer.put_pixel(x, y, rect_color);
             }
         }
     }
@@ -82,14 +90,15 @@ impl Rectangle {
         &self,
         boundary: nannou::geom::Rect,
         image_buffer: &nannou::image::RgbaImage,
+        padding_around_rectangle: u32,
     ) -> bool {
         let center = self.center_from_nannou_rect(boundary);
 
-        let left = center.0 as u32 - (self.width / 2.0) as u32;
-        let right = center.0 as u32 + (self.width / 2.0) as u32;
+        let left = center.0 as u32 - (self.width / 2.0) as u32 - padding_around_rectangle;
+        let right = center.0 as u32 + (self.width / 2.0) as u32 + padding_around_rectangle;
 
-        let top = center.1 as u32 - (self.height / 2.0) as u32;
-        let bottom = center.1 as u32 + (self.height / 2.0) as u32;
+        let top = center.1 as u32 - (self.height / 2.0) as u32 - padding_around_rectangle;
+        let bottom = center.1 as u32 + (self.height / 2.0) as u32 + padding_around_rectangle;
 
         let mut is_open = true;
         let initial_pixel_color = image_buffer.get_pixel(left, top);
