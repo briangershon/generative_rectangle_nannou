@@ -25,7 +25,10 @@ fn update(app: &App, model: &mut Model, _update: Update) {
     if (app.elapsed_frames() % 60) == 0 {
         model.rectangle_packer.add_random_rectangle();
         model.tries += 1;
-        println!("Rect count is: {}", model.rectangle_packer.rectangles.len());
+        println!(
+            "Rect count is: {}",
+            model.rectangle_packer.rectangles().len()
+        );
     }
 }
 
@@ -48,7 +51,7 @@ fn view(app: &App, model: &Model, frame: Frame) {
     // Draw a blue ellipse with a radius of 10 at the (x,y) coordinates of (0.0, 0.0)
     draw.ellipse().color(STEELBLUE).x_y(x, y);
 
-    for r in model.rectangle_packer.rectangles.iter() {
+    for r in model.rectangle_packer.rectangles().iter() {
         draw.rect()
             .x_y(r.x, r.y)
             .w_h(r.width, r.height)
@@ -56,6 +59,23 @@ fn view(app: &App, model: &Model, frame: Frame) {
             .stroke_color(YELLOW)
             .stroke_weight(1.0);
     }
+
+    let image_buffer = model.rectangle_packer.image_buffer();
+
+    let texture = wgpu::TextureBuilder::new()
+        .size([boundary.w() as u32, boundary.h() as u32])
+        .format(wgpu::TextureFormat::Rgba8Unorm)
+        .usage(wgpu::TextureUsages::COPY_DST | wgpu::TextureUsages::TEXTURE_BINDING)
+        .build(app.main_window().device());
+
+    let flat_samples = image_buffer.as_flat_samples();
+    texture.upload_data(
+        app.main_window().device(),
+        &mut *frame.command_encoder(),
+        &flat_samples.as_slice(),
+    );
+
+    draw.texture(&texture);
 
     draw.to_frame(app, &frame).unwrap();
 

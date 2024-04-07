@@ -1,9 +1,10 @@
-use nannou::rand::random_range;
+use nannou::{image, rand::random_range};
 
 pub struct RectanglePacker {
     pub boundary: nannou::geom::Rect,
-    pub rectangles: Vec<Rectangle>,
-    // pub background_image: Option<image::RgbImage>,
+    rectangles: Vec<Rectangle>,
+    image_buffer: nannou::image::RgbaImage,
+    // pub background_image: Option<image::RgbaImage>,
 }
 
 pub struct Rectangle {
@@ -15,10 +16,34 @@ pub struct Rectangle {
 
 impl RectanglePacker {
     pub fn new(boundary: nannou::geom::Rect) -> Self {
+        let width = boundary.w() as u32;
+        let height = boundary.h() as u32;
+        let new_buffer = image::ImageBuffer::from_fn(width, height, |x, y| {
+            let r = (x as f32 / width as f32 * 255.0) as u8;
+            let g = (y as f32 / height as f32 * 255.0) as u8;
+            let b = 0;
+            image::Rgba([r, g, b, 128])
+        });
+
+        // new_buffer.put_pixel(10, 10, image::Rgba([255, 0, 0, 255]));
+        // new_buffer.put_pixel(11, 10, image::Rgba([255, 0, 0, 255]));
+        // new_buffer.put_pixel(12, 10, image::Rgba([255, 0, 0, 255]));
+
+        // println!("Image buffer 10, 10: {:?}", new_buffer.get_pixel(10, 10));
+
         Self {
             boundary,
             rectangles: Vec::new(),
+            image_buffer: new_buffer,
         }
+    }
+
+    pub fn rectangles(&self) -> &Vec<Rectangle> {
+        &self.rectangles
+    }
+
+    pub fn image_buffer(&self) -> &nannou::image::RgbaImage {
+        &self.image_buffer
     }
 
     pub fn add_random_rectangle(&mut self) {
