@@ -1,6 +1,5 @@
-use nannou::prelude::*;
+use nannou::{image, prelude::*};
 mod rectangle_packer;
-use nannou::color::rgba;
 
 fn main() {
     nannou::app(model)
@@ -13,20 +12,39 @@ fn main() {
 struct Model {
     tries: u32,
     rectangle_packer: rectangle_packer::RectanglePacker,
+    background_image_buffer: image::ImageBuffer<image::Rgba<u8>, Vec<u8>>,
+    background_texture: wgpu::Texture,
 }
 
 fn model(app: &App) -> Model {
+    let boundary = app.window_rect();
+    let width = boundary.w() as u32;
+    let height = boundary.h() as u32;
+
+    let background_texture = wgpu::TextureBuilder::new()
+        .size([boundary.w() as u32, boundary.h() as u32])
+        .format(wgpu::TextureFormat::Rgba8Unorm)
+        .usage(wgpu::TextureUsages::COPY_DST | wgpu::TextureUsages::TEXTURE_BINDING)
+        .build(app.main_window().device());
+
     Model {
         tries: 0,
         rectangle_packer: rectangle_packer::RectanglePacker::new(app.window_rect()),
+        background_image_buffer: image::ImageBuffer::from_fn(width, height, |x, y| {
+            let r = (x as f32 / width as f32 * 255.0) as u8;
+            let g = (y as f32 / height as f32 * 255.0) as u8;
+            let b = 0;
+            image::Rgba([r, g, b, 128])
+        }),
+        background_texture,
     }
 }
 
-fn update(app: &App, model: &mut Model, _update: Update) {
-    if (app.elapsed_frames() % 60) == 0 {
-        model.rectangle_packer.add_random_rectangle();
-        model.tries += 1;
-    }
+fn update(_app: &App, model: &mut Model, _update: Update) {
+    // if (app.elapsed_frames() % 60) == 0 {
+    model.rectangle_packer.add_random_rectangle();
+    model.tries += 1;
+    // }
 }
 
 fn view(app: &App, model: &Model, frame: Frame) {
@@ -45,33 +63,42 @@ fn view(app: &App, model: &Model, frame: Frame) {
 
     draw.background().color(PLUM);
 
-    let image_buffer = model.rectangle_packer.image_buffer();
+    let background_flat_samples = model.background_image_buffer.as_flat_samples();
+    model.background_texture.upload_data(
+        app.main_window().device(),
+        &mut *frame.command_encoder(),
+        &background_flat_samples.as_slice(),
+    );
 
-    let texture = wgpu::TextureBuilder::new()
+    let packer_debug_buffer = model.rectangle_packer.image_buffer();
+
+    let packer_debug_texture = wgpu::TextureBuilder::new()
         .size([boundary.w() as u32, boundary.h() as u32])
         .format(wgpu::TextureFormat::Rgba8Unorm)
         .usage(wgpu::TextureUsages::COPY_DST | wgpu::TextureUsages::TEXTURE_BINDING)
         .build(app.main_window().device());
 
-    let flat_samples = image_buffer.as_flat_samples();
-    texture.upload_data(
+    let packer_debug_flat_samples = packer_debug_buffer.as_flat_samples();
+
+    packer_debug_texture.upload_data(
         app.main_window().device(),
         &mut *frame.command_encoder(),
-        &flat_samples.as_slice(),
+        &packer_debug_flat_samples.as_slice(),
     );
 
-    draw.texture(&texture);
+    draw.texture(&model.background_texture);
+    // draw.texture(&packer_debug_texture);
 
-    // Draw a blue ellipse with a radius of 10 at the (x,y) coordinates of (0.0, 0.0)
     draw.ellipse().color(STEELBLUE).x_y(x, y);
 
     for r in model.rectangle_packer.rectangles().iter() {
         draw.rect()
             .x_y(r.x, r.y)
             .w_h(r.width, r.height)
-            .color(rgba(0.0, 0.0, 25.0, 0.6)); // ORANGERED)
-                                               // .stroke_color(YELLOW)
-                                               // .stroke_weight(1.0);
+            // .color(rgba(0.0, 0.0, 25.0, 0.2))
+            .color(ORANGERED)
+            .stroke_color(YELLOW)
+            .stroke_weight(1.0);
     }
 
     draw.to_frame(app, &frame).unwrap();

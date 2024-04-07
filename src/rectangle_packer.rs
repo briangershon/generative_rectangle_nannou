@@ -18,14 +18,7 @@ impl RectanglePacker {
     pub fn new(boundary: nannou::geom::Rect) -> Self {
         let width = boundary.w() as u32;
         let height = boundary.h() as u32;
-        let new_buffer = image::ImageBuffer::from_fn(width, height, |x, y| {
-            let r = (x as f32 / width as f32 * 255.0) as u8;
-            let g = (y as f32 / height as f32 * 255.0) as u8;
-            let b = 0;
-            image::Rgba([r, g, b, 128])
-        });
-
-        // println!("Image buffer 10, 10: {:?}", new_buffer.get_pixel(10, 10));
+        let new_buffer = image::ImageBuffer::from_pixel(width, height, image::Rgba([0, 0, 0, 255]));
 
         Self {
             boundary,
@@ -50,20 +43,14 @@ impl RectanglePacker {
             height: random_range(4.0, 60.0),
         };
 
-        new_rect.draw_rect_on_buffer(self.boundary, &mut self.image_buffer);
-
-        self.rectangles.push(new_rect);
+        if new_rect.open_rect_on_buffer(self.boundary, &self.image_buffer) {
+            new_rect.draw_rect_on_buffer(self.boundary, &mut self.image_buffer);
+            self.rectangles.push(new_rect);
+        }
     }
 }
 
 impl Rectangle {
-    /// Returns true if the given rectangle overlaps with this rectangle.
-    // pub fn is_overlap(&self, rect: &Rectangle) -> bool {
-    //     let x_overlap = self.x + self.width > rect.x && rect.x + rect.width > self.x;
-    //     let y_overlap = self.y + self.height > rect.y && rect.y + rect.height > self.y;
-    //     x_overlap && y_overlap
-    // }
-
     fn center_from_nannou_rect(&self, boundary: nannou::geom::Rect) -> (f32, f32) {
         let origin_x = boundary.w() / 2.0;
         let origin_y = boundary.h() / 2.0;
@@ -89,6 +76,32 @@ impl Rectangle {
                 image_buffer.put_pixel(x, y, image::Rgba([255, 0, 0, 255]));
             }
         }
+    }
+
+    fn open_rect_on_buffer(
+        &self,
+        boundary: nannou::geom::Rect,
+        image_buffer: &nannou::image::RgbaImage,
+    ) -> bool {
+        let center = self.center_from_nannou_rect(boundary);
+
+        let left = center.0 as u32 - (self.width / 2.0) as u32;
+        let right = center.0 as u32 + (self.width / 2.0) as u32;
+
+        let top = center.1 as u32 - (self.height / 2.0) as u32;
+        let bottom = center.1 as u32 + (self.height / 2.0) as u32;
+
+        let mut is_open = true;
+        let initial_pixel_color = image_buffer.get_pixel(left, top);
+        for x in left..right + 1 {
+            for y in top..bottom + 1 {
+                if image_buffer.get_pixel(x, y) != initial_pixel_color {
+                    is_open = false;
+                    break;
+                }
+            }
+        }
+        is_open
     }
 }
 
