@@ -1,40 +1,62 @@
 use nannou::prelude::*;
 
+mod rectangle_packer;
+
 fn main() {
     nannou::app(model)
         .update(update)
         .simple_window(view)
-        .size(200, 200)
-        .loop_mode(LoopMode::NTimes {
-            number_of_updates: 1,
-        })
+        .size(1000, 1000)
+        // .loop_mode(LoopMode::NTimes {
+        //     number_of_updates: 1,
+        // })
         .run();
 }
 
 struct Model {
-    rects: [Rectangle; 2],
+    tries: u32,
+    rects: Vec<rectangle_packer::Rectangle>,
 }
 
 fn model(_app: &App) -> Model {
+    let test_rects: Vec<rectangle_packer::Rectangle> = Vec::new();
     Model {
-        rects: [
-            Rectangle {
-                x: -20.0,
-                y: -20.0,
-                width: 10.0,
-                height: 10.0,
-            },
-            Rectangle {
-                x: 40.0,
-                y: 40.0,
-                width: 100.0,
-                height: 100.0,
-            },
-        ],
+        tries: 0,
+        rects: test_rects,
     }
 }
 
-fn update(_app: &App, _model: &mut Model, _update: Update) {}
+fn update(app: &App, model: &mut Model, _update: Update) {
+    let boundary = app.window_rect();
+
+    // if (app.elapsed_frames() % 120) == 0 {
+    let new_rect = rectangle_packer::Rectangle {
+        x: random_range(boundary.left() / 1.1, boundary.right() / 1.1),
+        y: random_range(boundary.bottom() / 1.1, boundary.top() / 1.1),
+        width: random_range(4.0, 30.0),
+        height: random_range(4.0, 30.0),
+    };
+    model.tries += 1;
+
+    let mut is_overlap = false;
+    for r in model.rects.iter() {
+        if r.is_overlap(&new_rect) {
+            is_overlap = true;
+            break;
+        }
+    }
+
+    if !is_overlap {
+        model.rects.push(new_rect);
+        println!(
+            "Rect count is: {} and tries are:{} frames:{}",
+            model.rects.len(),
+            model.tries,
+            app.elapsed_frames(),
+        );
+    }
+    // }
+}
 
 fn view(app: &App, model: &Model, frame: Frame) {
     frame.clear(PURPLE);
@@ -59,77 +81,23 @@ fn view(app: &App, model: &Model, frame: Frame) {
         draw.rect()
             .x_y(r.x, r.y)
             .w_h(r.width, r.height)
-            .color(ORANGERED);
+            .color(ORANGERED)
+            .stroke_color(YELLOW)
+            .stroke_weight(1.0);
     }
 
     draw.to_frame(app, &frame).unwrap();
 
     // Capture the frame as a png file
-    let file_path = captured_frame_path(app, &frame);
-    app.main_window().capture_frame(file_path);
+    // let file_path = captured_frame_path(app, &frame);
+    // app.main_window().capture_frame(file_path);
 }
 
 /// Generate a path to save the given frame to.
+#[allow(dead_code)]
 fn captured_frame_path(app: &App, frame: &Frame) -> std::path::PathBuf {
     app.project_path()
         .expect("failed to locate `project_path`")
         .join(format!("capture/{:03}", frame.nth()))
         .with_extension("png")
-}
-
-struct Rectangle {
-    x: f32,
-    y: f32,
-    width: f32,
-    height: f32,
-}
-
-impl Rectangle {
-    /// Returns true if the given rectangle overlaps with this rectangle.
-    fn is_overlap(self, rect: Rectangle) -> bool {
-        let x_overlap = self.x + self.width > rect.x && rect.x + rect.width > self.x;
-        let y_overlap = self.y + self.height > rect.y && rect.y + rect.height > self.y;
-        x_overlap && y_overlap
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn does_overlap() {
-        let r = Rectangle {
-            x: 0.0,
-            y: 0.0,
-            width: 10.0,
-            height: 10.0,
-        };
-
-        let result = r.is_overlap(Rectangle {
-            x: 5.0,
-            y: 5.0,
-            width: 10.0,
-            height: 10.0,
-        });
-        assert!(result);
-    }
-
-    #[test]
-    fn does_not_overlap() {
-        let r = super::Rectangle {
-            x: 0.0,
-            y: 0.0,
-            width: 10.0,
-            height: 10.0,
-        };
-
-        let result = r.is_overlap(super::Rectangle {
-            x: 11.0,
-            y: 11.0,
-            width: 10.0,
-            height: 10.0,
-        });
-        assert!(!result);
-    }
 }
