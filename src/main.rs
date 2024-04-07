@@ -1,5 +1,6 @@
 use nannou::prelude::*;
 mod rectangle_packer;
+use nannou::color::rgba;
 
 fn main() {
     nannou::app(model)
@@ -68,9 +69,9 @@ fn view(app: &App, model: &Model, frame: Frame) {
         draw.rect()
             .x_y(r.x, r.y)
             .w_h(r.width, r.height)
-            .color(ORANGERED)
-            .stroke_color(YELLOW)
-            .stroke_weight(1.0);
+            .color(rgba(100.0, 0.0, 255.0, 0.1)); // ORANGERED)
+                                                  // .stroke_color(YELLOW)
+                                                  // .stroke_weight(1.0);
     }
 
     draw.to_frame(app, &frame).unwrap();

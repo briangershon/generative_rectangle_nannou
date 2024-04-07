@@ -50,30 +50,49 @@ impl RectanglePacker {
         let new_rect = Rectangle {
             x: random_range(self.boundary.left() / 1.1, self.boundary.right() / 1.1),
             y: random_range(self.boundary.bottom() / 1.1, self.boundary.top() / 1.1),
-            width: random_range(4.0, 30.0),
-            height: random_range(4.0, 30.0),
+            width: random_range(4.0, 60.0),
+            height: random_range(4.0, 60.0),
         };
 
-        let mut is_overlap = false;
-        for r in self.rectangles.iter() {
-            if r.is_overlap(&new_rect) {
-                is_overlap = true;
-                break;
-            }
-        }
+        println!(
+            "plotting rectangle: {} {} {} {}",
+            new_rect.x, new_rect.y, new_rect.width, new_rect.height
+        );
 
-        if !is_overlap {
-            self.rectangles.push(new_rect);
-        }
+        new_rect.draw_rect_on_buffer(self.boundary, &mut self.image_buffer);
+
+        self.rectangles.push(new_rect);
     }
 }
 
 impl Rectangle {
     /// Returns true if the given rectangle overlaps with this rectangle.
-    pub fn is_overlap(&self, rect: &Rectangle) -> bool {
-        let x_overlap = self.x + self.width > rect.x && rect.x + rect.width > self.x;
-        let y_overlap = self.y + self.height > rect.y && rect.y + rect.height > self.y;
-        x_overlap && y_overlap
+    // pub fn is_overlap(&self, rect: &Rectangle) -> bool {
+    //     let x_overlap = self.x + self.width > rect.x && rect.x + rect.width > self.x;
+    //     let y_overlap = self.y + self.height > rect.y && rect.y + rect.height > self.y;
+    //     x_overlap && y_overlap
+    // }
+
+    fn draw_rect_on_buffer(
+        &self,
+        boundary: nannou::geom::Rect,
+        image_buffer: &mut nannou::image::RgbaImage,
+    ) {
+        // let buffer = &mut self.image_buffer;
+
+        let origin_x = boundary.w() as u32 / 2;
+        let origin_y = boundary.h() as u32 / 2;
+        for x in self.x as u32..(self.x + self.width) as u32 {
+            for y in self.y as u32..(self.y + self.height) as u32 {
+                // let rect_center_x = new_rect.x + new_rect.width / 2.0;
+                // let rect_center_t = new_rect.y + new_rect.width / 2.0;
+                image_buffer.put_pixel(
+                    (origin_x) + x - self.width as u32 / 2 - 1,
+                    (origin_y) - y + self.height as u32 / 2 - 1,
+                    image::Rgba([255, 0, 0, 255]),
+                );
+            }
+        }
     }
 }
 
@@ -81,39 +100,39 @@ impl Rectangle {
 mod tests {
     use super::*;
 
-    #[test]
-    fn does_overlap() {
-        let r = Rectangle {
-            x: 0.0,
-            y: 0.0,
-            width: 10.0,
-            height: 10.0,
-        };
+    // #[test]
+    // fn does_overlap() {
+    //     let r = Rectangle {
+    //         x: 0.0,
+    //         y: 0.0,
+    //         width: 10.0,
+    //         height: 10.0,
+    //     };
 
-        let result = r.is_overlap(&Rectangle {
-            x: 5.0,
-            y: 5.0,
-            width: 10.0,
-            height: 10.0,
-        });
-        assert!(result);
-    }
+    //     let result = r.is_overlap(&Rectangle {
+    //         x: 5.0,
+    //         y: 5.0,
+    //         width: 10.0,
+    //         height: 10.0,
+    //     });
+    //     assert!(result);
+    // }
 
-    #[test]
-    fn does_not_overlap() {
-        let r = super::Rectangle {
-            x: 0.0,
-            y: 0.0,
-            width: 10.0,
-            height: 10.0,
-        };
+    // #[test]
+    // fn does_not_overlap() {
+    //     let r = super::Rectangle {
+    //         x: 0.0,
+    //         y: 0.0,
+    //         width: 10.0,
+    //         height: 10.0,
+    //     };
 
-        let result = r.is_overlap(&Rectangle {
-            x: 11.0,
-            y: 11.0,
-            width: 10.0,
-            height: 10.0,
-        });
-        assert!(!result);
-    }
+    //     let result = r.is_overlap(&Rectangle {
+    //         x: 11.0,
+    //         y: 11.0,
+    //         width: 10.0,
+    //         height: 10.0,
+    //     });
+    //     assert!(!result);
+    // }
 }
