@@ -25,10 +25,6 @@ fn update(app: &App, model: &mut Model, _update: Update) {
     if (app.elapsed_frames() % 60) == 0 {
         model.rectangle_packer.add_random_rectangle();
         model.tries += 1;
-        println!(
-            "Rect count is: {}",
-            model.rectangle_packer.rectangles().len()
-        );
     }
 }
 
@@ -48,18 +44,6 @@ fn view(app: &App, model: &Model, frame: Frame) {
 
     draw.background().color(PLUM);
 
-    // Draw a blue ellipse with a radius of 10 at the (x,y) coordinates of (0.0, 0.0)
-    draw.ellipse().color(STEELBLUE).x_y(x, y);
-
-    for r in model.rectangle_packer.rectangles().iter() {
-        draw.rect()
-            .x_y(r.x, r.y)
-            .w_h(r.width, r.height)
-            .color(ORANGERED)
-            .stroke_color(YELLOW)
-            .stroke_weight(1.0);
-    }
-
     let image_buffer = model.rectangle_packer.image_buffer();
 
     let texture = wgpu::TextureBuilder::new()
@@ -76,6 +60,18 @@ fn view(app: &App, model: &Model, frame: Frame) {
     );
 
     draw.texture(&texture);
+
+    // Draw a blue ellipse with a radius of 10 at the (x,y) coordinates of (0.0, 0.0)
+    draw.ellipse().color(STEELBLUE).x_y(x, y);
+
+    for r in model.rectangle_packer.rectangles().iter() {
+        draw.rect()
+            .x_y(r.x, r.y)
+            .w_h(r.width, r.height)
+            .color(ORANGERED)
+            .stroke_color(YELLOW)
+            .stroke_weight(1.0);
+    }
 
     draw.to_frame(app, &frame).unwrap();
 
