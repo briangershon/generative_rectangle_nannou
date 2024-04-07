@@ -25,10 +25,6 @@ impl RectanglePacker {
             image::Rgba([r, g, b, 128])
         });
 
-        // new_buffer.put_pixel(10, 10, image::Rgba([255, 0, 0, 255]));
-        // new_buffer.put_pixel(11, 10, image::Rgba([255, 0, 0, 255]));
-        // new_buffer.put_pixel(12, 10, image::Rgba([255, 0, 0, 255]));
-
         // println!("Image buffer 10, 10: {:?}", new_buffer.get_pixel(10, 10));
 
         Self {
@@ -54,11 +50,6 @@ impl RectanglePacker {
             height: random_range(4.0, 60.0),
         };
 
-        println!(
-            "plotting rectangle: {} {} {} {}",
-            new_rect.x, new_rect.y, new_rect.width, new_rect.height
-        );
-
         new_rect.draw_rect_on_buffer(self.boundary, &mut self.image_buffer);
 
         self.rectangles.push(new_rect);
@@ -73,24 +64,29 @@ impl Rectangle {
     //     x_overlap && y_overlap
     // }
 
+    fn center_from_nannou_rect(&self, boundary: nannou::geom::Rect) -> (f32, f32) {
+        let origin_x = boundary.w() / 2.0;
+        let origin_y = boundary.h() / 2.0;
+
+        (origin_x + self.x, origin_y - self.y)
+    }
+
     fn draw_rect_on_buffer(
         &self,
         boundary: nannou::geom::Rect,
         image_buffer: &mut nannou::image::RgbaImage,
     ) {
-        // let buffer = &mut self.image_buffer;
+        let center = self.center_from_nannou_rect(boundary);
 
-        let origin_x = boundary.w() as u32 / 2;
-        let origin_y = boundary.h() as u32 / 2;
-        for x in self.x as u32..(self.x + self.width) as u32 {
-            for y in self.y as u32..(self.y + self.height) as u32 {
-                // let rect_center_x = new_rect.x + new_rect.width / 2.0;
-                // let rect_center_t = new_rect.y + new_rect.width / 2.0;
-                image_buffer.put_pixel(
-                    (origin_x) + x - self.width as u32 / 2 - 1,
-                    (origin_y) - y + self.height as u32 / 2 - 1,
-                    image::Rgba([255, 0, 0, 255]),
-                );
+        let left = center.0 as u32 - (self.width / 2.0) as u32;
+        let right = center.0 as u32 + (self.width / 2.0) as u32;
+
+        let top = center.1 as u32 - (self.height / 2.0) as u32;
+        let bottom = center.1 as u32 + (self.height / 2.0) as u32;
+
+        for x in left..right + 1 {
+            for y in top..bottom + 1 {
+                image_buffer.put_pixel(x, y, image::Rgba([255, 0, 0, 255]));
             }
         }
     }
@@ -135,4 +131,30 @@ mod tests {
     //     });
     //     assert!(!result);
     // }
+
+    #[test]
+    fn center_from_origin() {
+        let r = Rectangle {
+            x: 0.0,
+            y: 0.0,
+            width: 10.0,
+            height: 10.0,
+        };
+
+        let result = r.center_from_nannou_rect(nannou::geom::Rect::from_w_h(1000.0, 1000.0));
+        assert_eq!(result, (500.0, 500.0));
+    }
+
+    #[test]
+    fn center_from_bottom_right() {
+        let r = Rectangle {
+            x: 200.0,
+            y: -100.0,
+            width: 10.0,
+            height: 10.0,
+        };
+
+        let result = r.center_from_nannou_rect(nannou::geom::Rect::from_w_h(1000.0, 1000.0));
+        assert_eq!(result, (700.0, 600.0));
+    }
 }

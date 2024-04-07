@@ -69,9 +69,9 @@ fn view(app: &App, model: &Model, frame: Frame) {
         draw.rect()
             .x_y(r.x, r.y)
             .w_h(r.width, r.height)
-            .color(rgba(100.0, 0.0, 255.0, 0.1)); // ORANGERED)
-                                                  // .stroke_color(YELLOW)
-                                                  // .stroke_weight(1.0);
+            .color(rgba(0.0, 0.0, 25.0, 0.6)); // ORANGERED)
+                                               // .stroke_color(YELLOW)
+                                               // .stroke_weight(1.0);
     }
 
     draw.to_frame(app, &frame).unwrap();
