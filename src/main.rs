@@ -1,5 +1,4 @@
 use nannou::prelude::*;
-
 mod rectangle_packer;
 
 fn main() {
@@ -7,55 +6,27 @@ fn main() {
         .update(update)
         .simple_window(view)
         .size(1000, 1000)
-        // .loop_mode(LoopMode::NTimes {
-        //     number_of_updates: 1,
-        // })
         .run();
 }
 
 struct Model {
     tries: u32,
-    rects: Vec<rectangle_packer::Rectangle>,
+    rectangle_packer: rectangle_packer::RectanglePacker,
 }
 
-fn model(_app: &App) -> Model {
-    let test_rects: Vec<rectangle_packer::Rectangle> = Vec::new();
+fn model(app: &App) -> Model {
     Model {
         tries: 0,
-        rects: test_rects,
+        rectangle_packer: rectangle_packer::RectanglePacker::new(app.window_rect()),
     }
 }
 
 fn update(app: &App, model: &mut Model, _update: Update) {
-    let boundary = app.window_rect();
-
-    // if (app.elapsed_frames() % 120) == 0 {
-    let new_rect = rectangle_packer::Rectangle {
-        x: random_range(boundary.left() / 1.1, boundary.right() / 1.1),
-        y: random_range(boundary.bottom() / 1.1, boundary.top() / 1.1),
-        width: random_range(4.0, 30.0),
-        height: random_range(4.0, 30.0),
-    };
-    model.tries += 1;
-
-    let mut is_overlap = false;
-    for r in model.rects.iter() {
-        if r.is_overlap(&new_rect) {
-            is_overlap = true;
-            break;
-        }
+    if (app.elapsed_frames() % 60) == 0 {
+        model.rectangle_packer.add_random_rectangle();
+        model.tries += 1;
+        println!("Rect count is: {}", model.rectangle_packer.rectangles.len());
     }
-
-    if !is_overlap {
-        model.rects.push(new_rect);
-        println!(
-            "Rect count is: {} and tries are:{} frames:{}",
-            model.rects.len(),
-            model.tries,
-            app.elapsed_frames(),
-        );
-    }
-    // }
 }
 
 fn view(app: &App, model: &Model, frame: Frame) {
@@ -77,7 +48,7 @@ fn view(app: &App, model: &Model, frame: Frame) {
     // Draw a blue ellipse with a radius of 10 at the (x,y) coordinates of (0.0, 0.0)
     draw.ellipse().color(STEELBLUE).x_y(x, y);
 
-    for r in model.rects.iter() {
+    for r in model.rectangle_packer.rectangles.iter() {
         draw.rect()
             .x_y(r.x, r.y)
             .w_h(r.width, r.height)

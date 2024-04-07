@@ -1,9 +1,46 @@
-// pub mod rectangle_packer {
+use nannou::rand::random_range;
+
+pub struct RectanglePacker {
+    pub boundary: nannou::geom::Rect,
+    pub rectangles: Vec<Rectangle>,
+    // pub background_image: Option<image::RgbImage>,
+}
+
 pub struct Rectangle {
     pub x: f32,
     pub y: f32,
     pub width: f32,
     pub height: f32,
+}
+
+impl RectanglePacker {
+    pub fn new(boundary: nannou::geom::Rect) -> Self {
+        Self {
+            boundary,
+            rectangles: Vec::new(),
+        }
+    }
+
+    pub fn add_random_rectangle(&mut self) {
+        let new_rect = Rectangle {
+            x: random_range(self.boundary.left() / 1.1, self.boundary.right() / 1.1),
+            y: random_range(self.boundary.bottom() / 1.1, self.boundary.top() / 1.1),
+            width: random_range(4.0, 30.0),
+            height: random_range(4.0, 30.0),
+        };
+
+        let mut is_overlap = false;
+        for r in self.rectangles.iter() {
+            if r.is_overlap(&new_rect) {
+                is_overlap = true;
+                break;
+            }
+        }
+
+        if !is_overlap {
+            self.rectangles.push(new_rect);
+        }
+    }
 }
 
 impl Rectangle {
@@ -55,4 +92,3 @@ mod tests {
         assert!(!result);
     }
 }
-// }
