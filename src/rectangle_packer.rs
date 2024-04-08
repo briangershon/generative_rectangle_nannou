@@ -78,7 +78,7 @@ impl Rectangle {
         for x in left..right + 1 {
             for y in top..bottom + 1 {
                 let mut rect_color = RECT_FILL_COLOR;
-                if (x == left || x == right + 1) || (y == top || y == bottom + 1) {
+                if (x == left || x == right) || (y == top || y == bottom) {
                     rect_color = RECT_STROKE_COLOR;
                 }
                 image_buffer.put_pixel(x, y, rect_color);
