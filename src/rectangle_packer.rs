@@ -82,6 +82,7 @@ impl RectanglePacker {
         &self.rectangles
     }
 
+    #[allow(dead_code)]
     pub fn image_buffer(&self) -> &imageproc::image::RgbaImage {
         &self.image_buffer
     }

@@ -1,4 +1,4 @@
-use nannou::{image, prelude::*, rand::rngs::SmallRng, LoopMode};
+use nannou::{prelude::*, rand::rngs::SmallRng, LoopMode};
 mod rectangle_packer;
 use first_nannou_project::texture_from_image_buffer;
 use nannou::rand;
@@ -17,8 +17,7 @@ fn main() {
 
 struct Model {
     rectangle_packer: rectangle_packer::RectanglePacker,
-    background_image_buffer: image::ImageBuffer<image::Rgba<u8>, Vec<u8>>,
-    background_texture: wgpu::Texture,
+    background_image_buffer: imageproc::image::ImageBuffer<imageproc::image::Rgba<u8>, Vec<u8>>,
     rng: SmallRng,
 }
 
@@ -37,21 +36,14 @@ fn model(app: &App) -> Model {
     let width = boundary.w() as u32;
     let height = boundary.h() as u32;
 
-    let background_texture = wgpu::TextureBuilder::new()
-        .size([boundary.w() as u32, boundary.h() as u32])
-        .format(wgpu::TextureFormat::Rgba8Unorm)
-        .usage(wgpu::TextureUsages::COPY_DST | wgpu::TextureUsages::TEXTURE_BINDING)
-        .build(app.main_window().device());
-
     Model {
         rectangle_packer: rectangle_packer::RectanglePacker::new(app.window_rect()),
-        background_image_buffer: image::ImageBuffer::from_fn(width, height, |x, y| {
+        background_image_buffer: imageproc::image::ImageBuffer::from_fn(width, height, |x, y| {
             let r = (x as f32 / width as f32 * 255.0) as u8;
             let g = (y as f32 / height as f32 * 255.0) as u8;
             let b = 0;
-            image::Rgba([r, g, b, 128])
+            imageproc::image::Rgba([r, g, b, 128])
         }),
-        background_texture,
         rng,
     }
 }
@@ -68,22 +60,13 @@ fn view(app: &App, model: &Model, frame: Frame) {
     let draw = app.draw();
 
     draw.background().color(PLUM);
-
-    let background_flat_samples = model.background_image_buffer.as_flat_samples();
-    model.background_texture.upload_data(
-        app.main_window().device(),
-        &mut *frame.command_encoder(),
-        &background_flat_samples.as_slice(),
-    );
-
-    draw.texture(&model.background_texture);
+    let background_texture = texture_from_image_buffer(app, &frame, &model.background_image_buffer);
+    draw.texture(&background_texture);
 
     // uncomment following lines to see the rectangle packer buffer for debugging
-    let packer_debug_buffer = model.rectangle_packer.image_buffer();
-    let packer_debug_texture = texture_from_image_buffer(app, &frame, &packer_debug_buffer);
-    draw.texture(&packer_debug_texture);
-
-    // draw.ellipse().color(STEELBLUE).x_y(x, y);
+    // let packer_debug_buffer = model.rectangle_packer.image_buffer();
+    // let packer_debug_texture = texture_from_image_buffer(app, &frame, &packer_debug_buffer);
+    // draw.texture(&packer_debug_texture);
 
     for r in model.rectangle_packer.rectangles().iter() {
         draw.rect()

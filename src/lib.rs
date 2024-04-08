@@ -3,7 +3,6 @@ use nannou::prelude::*;
 pub fn texture_from_image_buffer(
     app: &App,
     frame: &Frame,
-    // encoder: &mut wgpu::CommandEncoder,
     image_buffer: &imageproc::image::ImageBuffer<imageproc::image::Rgba<u8>, Vec<u8>>,
 ) -> wgpu::Texture {
     let boundary = app.window_rect();
@@ -14,12 +13,12 @@ pub fn texture_from_image_buffer(
         .usage(wgpu::TextureUsages::COPY_DST | wgpu::TextureUsages::TEXTURE_BINDING)
         .build(app.main_window().device());
 
-    let packer_debug_flat_samples = image_buffer.as_flat_samples();
+    let flat_samples = image_buffer.as_flat_samples();
 
     texture.upload_data(
         app.main_window().device(),
         &mut *frame.command_encoder(),
-        &packer_debug_flat_samples.as_slice(),
+        &flat_samples.as_slice(),
     );
 
     texture
