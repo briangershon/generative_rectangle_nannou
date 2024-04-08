@@ -36,16 +36,16 @@ impl RectanglePacker {
         draw_filled_ellipse_mut(
             &mut imageproc_buffer,
             (width as i32 / 2, height as i32 / 2),
-            400,
-            400,
+            (boundary.w() * 0.4) as i32,
+            (boundary.h() * 0.4) as i32,
             imageproc::image::Rgba([255, 255, 255, 255]),
         );
 
         draw_filled_ellipse_mut(
             &mut imageproc_buffer,
             (width as i32 / 2, height as i32 / 2),
-            390,
-            390,
+            (boundary.w() * 0.4 - 10.0) as i32,
+            (boundary.h() * 0.4 - 10.0) as i32,
             imageproc::image::Rgba([0, 0, 0, 255]),
         );
 
