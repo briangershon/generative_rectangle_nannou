@@ -1,5 +1,6 @@
 use nannou::{image, prelude::*, rand::rngs::SmallRng, LoopMode};
 mod rectangle_packer;
+use nannou::rand;
 use nannou::rand::SeedableRng;
 
 fn main() {
@@ -21,11 +22,15 @@ struct Model {
 }
 
 fn model(app: &App) -> Model {
-    let seed: [u8; 32] = [
-        1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25,
-        26, 27, 28, 29, 30, 31, 32,
-    ];
-    let rng = SmallRng::from_seed(seed);
+    // For seeded randomness
+    // let seed: [u8; 32] = [
+    //     10, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25,
+    //     26, 27, 28, 29, 30, 31, 32,
+    // ];
+    // let rng = SmallRng::from_seed(seed);
+
+    // for general randomness
+    let rng = SmallRng::from_rng(rand::thread_rng()).unwrap();
 
     let boundary = app.window_rect();
     let width = boundary.w() as u32;
