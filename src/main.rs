@@ -1,5 +1,6 @@
-use nannou::{image, prelude::*, LoopMode};
+use nannou::{image, prelude::*, rand::rngs::SmallRng, LoopMode};
 mod rectangle_packer;
+use nannou::rand::SeedableRng;
 
 fn main() {
     nannou::app(model)
@@ -13,13 +14,19 @@ fn main() {
 }
 
 struct Model {
-    tries: u32,
     rectangle_packer: rectangle_packer::RectanglePacker,
     background_image_buffer: image::ImageBuffer<image::Rgba<u8>, Vec<u8>>,
     background_texture: wgpu::Texture,
+    rng: SmallRng,
 }
 
 fn model(app: &App) -> Model {
+    let seed: [u8; 32] = [
+        1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25,
+        26, 27, 28, 29, 30, 31, 32,
+    ];
+    let rng = SmallRng::from_seed(seed);
+
     let boundary = app.window_rect();
     let width = boundary.w() as u32;
     let height = boundary.h() as u32;
@@ -31,7 +38,6 @@ fn model(app: &App) -> Model {
         .build(app.main_window().device());
 
     Model {
-        tries: 0,
         rectangle_packer: rectangle_packer::RectanglePacker::new(app.window_rect()),
         background_image_buffer: image::ImageBuffer::from_fn(width, height, |x, y| {
             let r = (x as f32 / width as f32 * 255.0) as u8;
@@ -40,16 +46,14 @@ fn model(app: &App) -> Model {
             image::Rgba([r, g, b, 128])
         }),
         background_texture,
+        rng,
     }
 }
 
 fn update(_app: &App, model: &mut Model, _update: Update) {
-    // if (app.elapsed_frames() % 60) == 0 {
     for _ in 0..500000 {
-        model.rectangle_packer.add_random_rectangle();
+        model.rectangle_packer.add_random_rectangle(&mut model.rng);
     }
-    model.tries += 1;
-    // }
 }
 
 fn view(app: &App, model: &Model, frame: Frame) {
@@ -109,8 +113,8 @@ fn view(app: &App, model: &Model, frame: Frame) {
     draw.to_frame(app, &frame).unwrap();
 
     // Capture the frame as a png file
-    // let file_path = captured_frame_path(app, &frame);
-    // app.main_window().capture_frame(file_path);
+    let file_path = captured_frame_path(app, &frame);
+    app.main_window().capture_frame(file_path);
 }
 
 /// Generate a path to save the given frame to.

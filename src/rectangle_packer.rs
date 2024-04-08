@@ -1,4 +1,5 @@
-use nannou::{image, rand::random_range};
+use nannou::rand::Rng;
+use nannou::{image, rand::rngs::SmallRng};
 
 // actual color not important since we're just checking for overlap
 const RECT_STROKE_COLOR: image::Rgba<u8> = image::Rgba([0, 255, 0, 255]);
@@ -39,12 +40,12 @@ impl RectanglePacker {
         &self.image_buffer
     }
 
-    pub fn add_random_rectangle(&mut self) {
+    pub fn add_random_rectangle(&mut self, rng: &mut SmallRng) {
         let new_rect = Rectangle {
-            x: random_range(self.boundary.left() / 1.1, self.boundary.right() / 1.1),
-            y: random_range(self.boundary.bottom() / 1.1, self.boundary.top() / 1.1),
-            width: random_range(4.0, 60.0),
-            height: random_range(4.0, 60.0),
+            x: rng.gen_range(self.boundary.left() / 1.1..self.boundary.right() / 1.1),
+            y: rng.gen_range(self.boundary.bottom() / 1.1..self.boundary.top() / 1.1),
+            width: rng.gen_range(4.0..60.0),
+            height: rng.gen_range(4.0..60.0),
         };
 
         if new_rect.open_rect_on_buffer(self.boundary, &self.image_buffer, 4) {
