@@ -1,15 +1,15 @@
+use imageproc::drawing::draw_filled_ellipse_mut;
+use nannou::rand::rngs::SmallRng;
 use nannou::rand::Rng;
-use nannou::{image, rand::rngs::SmallRng};
 
 // actual color not important since we're just checking for overlap
-const RECT_STROKE_COLOR: image::Rgba<u8> = image::Rgba([0, 255, 0, 255]);
-const RECT_FILL_COLOR: image::Rgba<u8> = image::Rgba([255, 0, 0, 255]);
+const RECT_STROKE_COLOR: imageproc::image::Rgba<u8> = imageproc::image::Rgba([0, 255, 0, 255]);
+const RECT_FILL_COLOR: imageproc::image::Rgba<u8> = imageproc::image::Rgba([255, 0, 0, 255]);
 
 pub struct RectanglePacker {
     pub boundary: nannou::geom::Rect,
     rectangles: Vec<Rectangle>,
-    image_buffer: nannou::image::RgbaImage,
-    // pub background_image: Option<image::RgbaImage>,
+    image_buffer: imageproc::image::RgbaImage,
 }
 
 pub struct Rectangle {
@@ -23,12 +23,36 @@ impl RectanglePacker {
     pub fn new(boundary: nannou::geom::Rect) -> Self {
         let width = boundary.w() as u32;
         let height = boundary.h() as u32;
-        let new_buffer = image::ImageBuffer::from_pixel(width, height, image::Rgba([0, 0, 0, 255]));
+        let new_buffer = imageproc::image::ImageBuffer::from_pixel(
+            width,
+            height,
+            imageproc::image::Rgba([0, 0, 0, 255]),
+        );
+
+        let mut imageproc_buffer =
+            imageproc::image::ImageBuffer::from_raw(width, height, new_buffer.into_raw())
+                .expect("Failed to convert image buffer");
+
+        draw_filled_ellipse_mut(
+            &mut imageproc_buffer,
+            (width as i32 / 2, height as i32 / 2),
+            400,
+            400,
+            imageproc::image::Rgba([255, 255, 255, 255]),
+        );
+
+        draw_filled_ellipse_mut(
+            &mut imageproc_buffer,
+            (width as i32 / 2, height as i32 / 2),
+            390,
+            390,
+            imageproc::image::Rgba([0, 0, 0, 255]),
+        );
 
         Self {
             boundary,
             rectangles: Vec::new(),
-            image_buffer: new_buffer,
+            image_buffer: imageproc_buffer,
         }
     }
 
@@ -36,7 +60,7 @@ impl RectanglePacker {
         &self.rectangles
     }
 
-    pub fn image_buffer(&self) -> &nannou::image::RgbaImage {
+    pub fn image_buffer(&self) -> &imageproc::image::RgbaImage {
         &self.image_buffer
     }
 
@@ -66,7 +90,7 @@ impl Rectangle {
     fn draw_rect_on_buffer(
         &self,
         boundary: nannou::geom::Rect,
-        image_buffer: &mut nannou::image::RgbaImage,
+        image_buffer: &mut imageproc::image::RgbaImage,
     ) {
         let center = self.center_from_nannou_rect(boundary);
 
@@ -90,7 +114,7 @@ impl Rectangle {
     fn open_rect_on_buffer(
         &self,
         boundary: nannou::geom::Rect,
-        image_buffer: &nannou::image::RgbaImage,
+        image_buffer: &imageproc::image::RgbaImage,
         padding_around_rectangle: u32,
     ) -> bool {
         let center = self.center_from_nannou_rect(boundary);
@@ -118,42 +142,6 @@ impl Rectangle {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    // #[test]
-    // fn does_overlap() {
-    //     let r = Rectangle {
-    //         x: 0.0,
-    //         y: 0.0,
-    //         width: 10.0,
-    //         height: 10.0,
-    //     };
-
-    //     let result = r.is_overlap(&Rectangle {
-    //         x: 5.0,
-    //         y: 5.0,
-    //         width: 10.0,
-    //         height: 10.0,
-    //     });
-    //     assert!(result);
-    // }
-
-    // #[test]
-    // fn does_not_overlap() {
-    //     let r = super::Rectangle {
-    //         x: 0.0,
-    //         y: 0.0,
-    //         width: 10.0,
-    //         height: 10.0,
-    //     };
-
-    //     let result = r.is_overlap(&Rectangle {
-    //         x: 11.0,
-    //         y: 11.0,
-    //         width: 10.0,
-    //         height: 10.0,
-    //     });
-    //     assert!(!result);
-    // }
 
     #[test]
     fn center_from_origin() {
