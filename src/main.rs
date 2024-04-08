@@ -1,4 +1,4 @@
-use nannou::{image, prelude::*};
+use nannou::{image, prelude::*, LoopMode};
 mod rectangle_packer;
 
 fn main() {
@@ -6,6 +6,9 @@ fn main() {
         .update(update)
         .simple_window(view)
         .size(1000, 1000)
+        .loop_mode(LoopMode::NTimes {
+            number_of_updates: 1,
+        })
         .run();
 }
 
@@ -42,7 +45,9 @@ fn model(app: &App) -> Model {
 
 fn update(_app: &App, model: &mut Model, _update: Update) {
     // if (app.elapsed_frames() % 60) == 0 {
-    model.rectangle_packer.add_random_rectangle();
+    for _ in 0..500000 {
+        model.rectangle_packer.add_random_rectangle();
+    }
     model.tries += 1;
     // }
 }
@@ -52,14 +57,14 @@ fn view(app: &App, model: &Model, frame: Frame) {
 
     let draw = app.draw();
 
-    let sine = app.time.sin();
-    let slowersine = (app.time / 2.0).sin();
+    // let sine = app.time.sin();
+    // let slowersine = (app.time / 2.0).sin();
 
     let boundary = app.window_rect();
 
-    // Map the sine wave functions to ranges between the boundaries of the window
-    let x = map_range(sine, -1.0, 1.0, boundary.left(), boundary.right());
-    let y = map_range(slowersine, -1.0, 1.0, boundary.bottom(), boundary.top());
+    // // Map the sine wave functions to ranges between the boundaries of the window
+    // let x = map_range(sine, -1.0, 1.0, boundary.left(), boundary.right());
+    // let y = map_range(slowersine, -1.0, 1.0, boundary.bottom(), boundary.top());
 
     draw.background().color(PLUM);
 
@@ -89,7 +94,7 @@ fn view(app: &App, model: &Model, frame: Frame) {
     draw.texture(&model.background_texture);
     // draw.texture(&packer_debug_texture);
 
-    draw.ellipse().color(STEELBLUE).x_y(x, y);
+    // draw.ellipse().color(STEELBLUE).x_y(x, y);
 
     for r in model.rectangle_packer.rectangles().iter() {
         draw.rect()
