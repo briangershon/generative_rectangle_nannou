@@ -1,5 +1,6 @@
 use nannou::{image, prelude::*, rand::rngs::SmallRng, LoopMode};
 mod rectangle_packer;
+use first_nannou_project::texture_from_image_buffer;
 use nannou::rand;
 use nannou::rand::SeedableRng;
 
@@ -66,15 +67,6 @@ fn view(app: &App, model: &Model, frame: Frame) {
 
     let draw = app.draw();
 
-    // let sine = app.time.sin();
-    // let slowersine = (app.time / 2.0).sin();
-
-    let boundary = app.window_rect();
-
-    // // Map the sine wave functions to ranges between the boundaries of the window
-    // let x = map_range(sine, -1.0, 1.0, boundary.left(), boundary.right());
-    // let y = map_range(slowersine, -1.0, 1.0, boundary.bottom(), boundary.top());
-
     draw.background().color(PLUM);
 
     let background_flat_samples = model.background_image_buffer.as_flat_samples();
@@ -84,26 +76,12 @@ fn view(app: &App, model: &Model, frame: Frame) {
         &background_flat_samples.as_slice(),
     );
 
-    let packer_debug_buffer = model.rectangle_packer.image_buffer();
-
-    let packer_debug_texture = wgpu::TextureBuilder::new()
-        .size([boundary.w() as u32, boundary.h() as u32])
-        .format(wgpu::TextureFormat::Rgba8Unorm)
-        .usage(wgpu::TextureUsages::COPY_DST | wgpu::TextureUsages::TEXTURE_BINDING)
-        .build(app.main_window().device());
-
-    let packer_debug_flat_samples = packer_debug_buffer.as_flat_samples();
-
-    packer_debug_texture.upload_data(
-        app.main_window().device(),
-        &mut *frame.command_encoder(),
-        &packer_debug_flat_samples.as_slice(),
-    );
-
     draw.texture(&model.background_texture);
 
-    // uncomment next line to see the rectangle packer buffer for debugging
-    // draw.texture(&packer_debug_texture);
+    // uncomment following lines to see the rectangle packer buffer for debugging
+    let packer_debug_buffer = model.rectangle_packer.image_buffer();
+    let packer_debug_texture = texture_from_image_buffer(app, &frame, &packer_debug_buffer);
+    draw.texture(&packer_debug_texture);
 
     // draw.ellipse().color(STEELBLUE).x_y(x, y);
 
