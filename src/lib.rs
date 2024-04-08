@@ -23,3 +23,11 @@ pub fn texture_from_image_buffer(
 
     texture
 }
+
+/// Generate a path to save the given frame to.
+pub fn captured_frame_path(app: &App, frame: &Frame) -> std::path::PathBuf {
+    app.project_path()
+        .expect("failed to locate `project_path`")
+        .join(format!("capture/{:03}", frame.nth()))
+        .with_extension("png")
+}

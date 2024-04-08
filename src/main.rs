@@ -1,6 +1,6 @@
 use nannou::{prelude::*, rand::rngs::SmallRng, LoopMode};
 mod rectangle_packer;
-use first_nannou_project::texture_from_image_buffer;
+use first_nannou_project::{captured_frame_path, texture_from_image_buffer};
 use nannou::rand;
 use nannou::rand::SeedableRng;
 
@@ -83,13 +83,4 @@ fn view(app: &App, model: &Model, frame: Frame) {
     // Capture the frame as a png file
     let file_path = captured_frame_path(app, &frame);
     app.main_window().capture_frame(file_path);
-}
-
-/// Generate a path to save the given frame to.
-#[allow(dead_code)]
-fn captured_frame_path(app: &App, frame: &Frame) -> std::path::PathBuf {
-    app.project_path()
-        .expect("failed to locate `project_path`")
-        .join(format!("capture/{:03}", frame.nth()))
-        .with_extension("png")
 }
