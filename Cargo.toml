@@ -8,3 +8,4 @@ edition = "2021"
 [dependencies]
 nannou = "0.19"
 imageproc = "0.24"
+ab_glyph = "0.2.24"

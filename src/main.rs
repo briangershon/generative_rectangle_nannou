@@ -101,6 +101,8 @@ fn view(app: &App, model: &Model, frame: Frame) {
     );
 
     draw.texture(&model.background_texture);
+
+    // uncomment next line to see the rectangle packer buffer for debugging
     // draw.texture(&packer_debug_texture);
 
     // draw.ellipse().color(STEELBLUE).x_y(x, y);

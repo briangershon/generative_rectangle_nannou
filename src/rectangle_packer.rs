@@ -1,3 +1,5 @@
+// use ab_glyph::{Font, FontRef, PxScale};
+// use imageproc::drawing::{draw_text_mut};
 use imageproc::drawing::draw_filled_ellipse_mut;
 use nannou::rand::rngs::SmallRng;
 use nannou::rand::Rng;
@@ -48,6 +50,26 @@ impl RectanglePacker {
             (boundary.h() * 0.4 - 10.0) as i32,
             imageproc::image::Rgba([0, 0, 0, 255]),
         );
+
+        // // /Library/Fonts/Arial Unicode.ttf
+        // let font = FontRef::try_from_slice(include_bytes!("/System/Library/Fonts/MarkerFelt.ttc"))
+        //     .expect("could not load font");
+
+        // let font_size = 1000.0;
+        // let scale = PxScale {
+        //     x: font_size,
+        //     y: font_size,
+        // };
+
+        // draw_text_mut(
+        //     &mut imageproc_buffer,
+        //     imageproc::image::Rgba([255, 255, 255, 255]),
+        //     width as i32 / 2 - 270,
+        //     height as i32 / 2 - 525,
+        //     scale,
+        //     &font,
+        //     "B",
+        // );
 
         Self {
             boundary,
