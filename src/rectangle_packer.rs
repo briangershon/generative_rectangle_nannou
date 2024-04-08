@@ -1,12 +1,14 @@
-// use ab_glyph::{Font, FontRef, PxScale};
-// use imageproc::drawing::{draw_text_mut};
+// use ab_glyph::{FontRef, PxScale};
 use imageproc::drawing::draw_filled_ellipse_mut;
+// use imageproc::drawing::draw_text_mut;
+// use nannou::image;
 use nannou::rand::rngs::SmallRng;
 use nannou::rand::Rng;
 
 // actual color not important since we're just checking for overlap
 const RECT_STROKE_COLOR: imageproc::image::Rgba<u8> = imageproc::image::Rgba([0, 255, 0, 255]);
 const RECT_FILL_COLOR: imageproc::image::Rgba<u8> = imageproc::image::Rgba([255, 0, 0, 255]);
+const RECT_HIDE_COLOR: imageproc::image::Rgba<u8> = imageproc::image::Rgba([0, 255, 0, 255]);
 
 pub struct RectanglePacker {
     pub boundary: nannou::geom::Rect,
@@ -40,19 +42,20 @@ impl RectanglePacker {
             (width as i32 / 2, height as i32 / 2),
             (boundary.w() * 0.4) as i32,
             (boundary.h() * 0.4) as i32,
-            imageproc::image::Rgba([255, 255, 255, 255]),
+            RECT_HIDE_COLOR,
         );
 
         draw_filled_ellipse_mut(
             &mut imageproc_buffer,
             (width as i32 / 2, height as i32 / 2),
-            (boundary.w() * 0.4 - 10.0) as i32,
-            (boundary.h() * 0.4 - 10.0) as i32,
+            (boundary.w() * 0.4 - 40.0) as i32,
+            (boundary.h() * 0.4 - 40.0) as i32,
             imageproc::image::Rgba([0, 0, 0, 255]),
         );
 
-        // // /Library/Fonts/Arial Unicode.ttf
-        // let font = FontRef::try_from_slice(include_bytes!("/System/Library/Fonts/MarkerFelt.ttc"))
+        // // "/Library/Fonts/Arial Unicode.ttf"
+        // // "/System/Library/Fonts/MarkerFelt.ttc"
+        // let font = FontRef::try_from_slice(include_bytes!("/Library/Fonts/Arial Unicode.ttf"))
         //     .expect("could not load font");
 
         // let font_size = 1000.0;
@@ -63,7 +66,7 @@ impl RectanglePacker {
 
         // draw_text_mut(
         //     &mut imageproc_buffer,
-        //     imageproc::image::Rgba([255, 255, 255, 255]),
+        //     RECT_HIDE_COLOR,
         //     width as i32 / 2 - 270,
         //     height as i32 / 2 - 525,
         //     scale,
@@ -141,20 +144,29 @@ impl Rectangle {
         padding_around_rectangle: u32,
     ) -> bool {
         let center = self.center_from_nannou_rect(boundary);
-
         let left = center.0 as u32 - (self.width / 2.0) as u32 - padding_around_rectangle;
         let right = center.0 as u32 + (self.width / 2.0) as u32 + padding_around_rectangle;
-
         let top = center.1 as u32 - (self.height / 2.0) as u32 - padding_around_rectangle;
         let bottom = center.1 as u32 + (self.height / 2.0) as u32 + padding_around_rectangle;
 
         let mut is_open = true;
+
         let initial_pixel_color = image_buffer.get_pixel(left, top);
-        for x in left..right + 1 {
-            for y in top..bottom + 1 {
-                if image_buffer.get_pixel(x, y) != initial_pixel_color {
-                    is_open = false;
-                    break;
+        if initial_pixel_color.eq(&RECT_HIDE_COLOR) {
+            is_open = false;
+        } else {
+            for x in left..right + 1 {
+                for y in top..bottom + 1 {
+                    let current_color = image_buffer.get_pixel(x, y);
+
+                    if current_color.eq(&RECT_HIDE_COLOR) {
+                        is_open = false;
+                        break;
+                    }
+                    if image_buffer.get_pixel(x, y).ne(initial_pixel_color) {
+                        is_open = false;
+                        break;
+                    }
                 }
             }
         }
