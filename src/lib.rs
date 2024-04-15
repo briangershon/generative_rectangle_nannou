@@ -1,5 +1,6 @@
 use nannou::prelude::*;
 
+/// Uploads the given image buffer to a new texture and returns the texture.
 pub fn texture_from_image_buffer(
     app: &App,
     frame: &Frame,
@@ -24,7 +25,7 @@ pub fn texture_from_image_buffer(
     texture
 }
 
-/// Generate a path to save the given frame to.
+/// Generate a file path to save the given frame to.
 pub fn captured_frame_path(app: &App, frame: &Frame) -> std::path::PathBuf {
     app.project_path()
         .expect("failed to locate `project_path`")
